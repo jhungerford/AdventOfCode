@@ -30,4 +30,13 @@ class Problem1Test extends FlatSpec with Matchers {
     FinalFloor(")())())".iterator) shouldEqual -3
   }
 
+  behavior of "enter basement"
+
+  it should "get 1 for )" in {
+    EnterBasement(")".iterator) shouldEqual 1
+  }
+
+  it should "get 5 for ()())" in {
+    EnterBasement("()())".iterator) shouldEqual 5
+  }
 }
