@@ -9,21 +9,44 @@ import scala.io.Source
 
 object Problem5 {
 
-  /**
-    * A nice String meets all of the following rules:
-    * It contains at least three vowels (aeiou)
-    * It contains at least one letter that appears twice in a row
-    * It does not contain the strings ab, cd, pq, or xy
-    *
-    * @param str String to check
-    * @return Whether the string is nice
-    */
-  def isNice(str: String): Boolean = {
-    val pairs = pairLetters(str)
+  sealed trait NiceRules {
+    def isNice(str: String): Boolean
+  }
 
-    hasEnoughVowels(str) &&
-      ! hasAForbiddenString(pairs) &&
-      hasALetterTwiceInARow(pairs)
+  object Part1Rules extends NiceRules {
+    /**
+      * A nice String meets all of the following rules:
+      * It contains at least three vowels (aeiou)
+      * It contains at least one letter that appears twice in a row
+      * It does not contain the strings ab, cd, pq, or xy
+      *
+      * @param str String to check
+      * @return Whether the string is nice
+      */
+    def isNice(str: String): Boolean = {
+      val pairs = pairLetters(str)
+
+      hasEnoughVowels(str) &&
+        !hasAForbiddenString(pairs) &&
+        hasALetterTwiceInARow(pairs)
+    }
+
+    val vowels = Set('a', 'e', 'i', 'o', 'u')
+
+    def hasEnoughVowels(str: String): Boolean = {
+      str.filter(letter => vowels.contains(letter)).length >= 3
+    }
+
+    val forbidden = Set(
+      ('a', 'b'),
+      ('c', 'd'),
+      ('p', 'q'),
+      ('x', 'y')
+    )
+
+    def hasAForbiddenString(pairs: List[(Char, Char)]) = pairs.exists(pair => forbidden.contains(pair))
+
+    def hasALetterTwiceInARow(pairs: List[(Char, Char)]) = pairs.exists(pair => pair._1 == pair._2)
   }
 
   def pairLetters(str: String): List[(Char, Char)] = {
@@ -32,26 +55,11 @@ object Problem5 {
     }._2
   }
 
-  val vowels = Set('a', 'e', 'i', 'o', 'u')
-  def hasEnoughVowels(str: String): Boolean = {
-    str.filter(letter => vowels.contains(letter)).length >= 3
-  }
-
-  val forbidden = Set(
-    ('a', 'b'),
-    ('c', 'd'),
-    ('p', 'q'),
-    ('x', 'y')
-  )
-  def hasAForbiddenString(pairs: List[(Char, Char)]) = pairs.exists(pair => forbidden.contains(pair) )
-
-  def hasALetterTwiceInARow(pairs: List[(Char, Char)]) = pairs.exists(pair => pair._1 == pair._2)
-
-  def countNice(iterator: Iterator[String]): Int = iterator.count(word => isNice(word))
+  def countNice(iterator: Iterator[String], rules: NiceRules): Int = iterator.count(word => rules.isNice(word))
 
   def main(args: Array[String]) {
     val inputFile = new File(Resources.getResource("problem5/input").toURI)
 
-    System.out.println(s"Nice words: ${countNice(Source.fromFile(inputFile).getLines())}")
+    System.out.println(s"Nice words: ${countNice(Source.fromFile(inputFile).getLines(), Part1Rules)}")
   }
 }
