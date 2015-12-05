@@ -48,4 +48,27 @@ class Problem2Test extends FlatSpec with Matchers {
 
     Problem2.totalPaper(presents) shouldEqual 101
   }
+
+
+  behavior of "present ribbon"
+
+  it should "get the right ribbon length for a 2x3x4 present" in {
+    Present(2, 3, 4).requiredRibbon shouldEqual 34
+  }
+
+  it should "get the right ribbon length for a 1x1x10 present" in {
+    Present(1, 1, 10).requiredRibbon shouldEqual 14
+  }
+
+
+  behavior of "total ribbon"
+
+  it should "add up the ribbon required for several presents correctly" in {
+    val presents = Iterator[Present](
+      Present(1, 1, 10),
+      Present(2, 3, 4)
+    )
+
+    Problem2.totalRibbon(presents) shouldEqual 48
+  }
 }
