@@ -1,6 +1,6 @@
-package dev.adventofcode.problem4
+package dev.adventofcode
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
 class Problem4Test extends FlatSpec with Matchers {
 

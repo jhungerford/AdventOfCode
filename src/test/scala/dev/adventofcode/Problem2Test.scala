@@ -1,7 +1,7 @@
-package dev.adventofcode.problem2
+package dev.adventofcode
 
-import dev.adventofcode.problem2.Problem2.{Present, StringToPresent}
-import org.scalatest.{Matchers, FlatSpec}
+import dev.adventofcode.Problem2.{Present, StringToPresent}
+import org.scalatest.{FlatSpec, Matchers}
 
 class Problem2Test extends FlatSpec with Matchers {
 

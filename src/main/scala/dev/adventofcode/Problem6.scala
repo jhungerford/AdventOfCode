@@ -1,11 +1,10 @@
-package dev.adventofcode.problem6
+package dev.adventofcode
 
 import java.io.File
 
 import com.google.common.io.Resources
 
 import scala.io.Source
-import scala.util.matching.Regex
 
 object Problem6 {
 

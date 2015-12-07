@@ -1,4 +1,4 @@
-package dev.adventofcode.problem4
+package dev.adventofcode
 
 import java.security.MessageDigest
 

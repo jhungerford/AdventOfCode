@@ -1,7 +1,7 @@
-package dev.adventofcode.problem5
+package dev.adventofcode
 
-import dev.adventofcode.problem5.Problem5.{Part2Rules, Part1Rules}
-import org.scalatest.{Matchers, FlatSpec}
+import dev.adventofcode.Problem5.{Part1Rules, Part2Rules}
+import org.scalatest.{FlatSpec, Matchers}
 
 class Problem5Test extends FlatSpec with Matchers {
 

@@ -1,10 +1,9 @@
-package dev.adventofcode.problem5
+package dev.adventofcode
 
 import java.io.File
 
 import com.google.common.io.Resources
 
-import scala.collection.immutable.IndexedSeq
 import scala.io.Source
 
 object Problem5 {

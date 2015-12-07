@@ -1,7 +1,7 @@
-package dev.adventofcode.problem1
+package dev.adventofcode
 
-import dev.adventofcode.problem1.Problem1.{EnterBasement, FinalFloor}
-import org.scalatest.{Matchers, FlatSpec}
+import dev.adventofcode.Problem1.{EnterBasement, FinalFloor}
+import org.scalatest.{FlatSpec, Matchers}
 
 class Problem1Test extends FlatSpec with Matchers {
 

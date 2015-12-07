@@ -1,10 +1,10 @@
-package dev.adventofcode.problem2
+package dev.adventofcode
 
 import java.io.File
 
 import com.google.common.io.Resources
 
-import scala.io.{BufferedSource, Source}
+import scala.io.Source
 
 object Problem2 {
 

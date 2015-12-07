@@ -1,4 +1,4 @@
-package dev.adventofcode.problem1
+package dev.adventofcode
 
 import java.io.File
 
