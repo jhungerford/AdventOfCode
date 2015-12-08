@@ -97,6 +97,8 @@ object Problem7 {
   class Circuit(table: Map[String, Gate]) {
     val cache = scala.collection.mutable.Map.empty[String, Int]
     def apply(gate: String): Int = cache.getOrElseUpdate(gate, table(gate).evaluate(this))
+    def reset = cache.clear()
+    def set(gate: String, value: Int) = cache.put(gate, value)
   }
 
   def main(args: Array[String]) {
@@ -104,6 +106,13 @@ object Problem7 {
 
     val circuit = new Circuit(linesToTable(Source.fromFile(inputFile).getLines()))
 
-    System.out.println(s"Output of wire a: ${circuit("a")}")
+    val aValue: Int = circuit("a")
+    System.out.println(s"Output of wire a: $aValue")
+
+    circuit.reset
+    circuit.set("b", aValue)
+
+    System.out.println(s"Output of wire a after setting b=a: ${circuit("a")}")
+
   }
 }
