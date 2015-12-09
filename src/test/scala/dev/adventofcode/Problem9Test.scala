@@ -35,7 +35,49 @@ class Problem9Test extends FlatSpec with Matchers {
     Problem9.minimumSpanningTree(edges) shouldEqual expectedMst
   }
 
-  it should "Sum edges correctly" in {
+  // https://en.wikipedia.org/wiki/Kruskal%27s_algorithm
+  it should "calculate the mst of the wikipedia example correclty" in {
+    val edges = List[Edge] (
+      Problem9.Edge("a", "b", 7),
+      Problem9.Edge("b", "c", 8),
+      Problem9.Edge("a", "d", 5),
+      Problem9.Edge("d", "b", 9),
+      Problem9.Edge("b", "e", 7),
+      Problem9.Edge("e", "c", 5),
+      Problem9.Edge("d", "e", 15),
+      Problem9.Edge("d", "f", 6),
+      Problem9.Edge("f", "g", 11),
+      Problem9.Edge("f", "e", 8),
+      Problem9.Edge("e", "g", 9)
+    )
+
+    val expectedMst = Set[Edge] (
+      Problem9.Edge("a", "b", 7),
+      Problem9.Edge("b", "e", 7),
+      Problem9.Edge("e", "c", 5),
+      Problem9.Edge("e", "g", 9),
+      Problem9.Edge("a", "d", 5),
+      Problem9.Edge("d", "f", 6)
+    )
+
+    Problem9.minimumSpanningTree(edges) shouldEqual expectedMst
+  }
+
+  it should "detect that an edge causes a cycle" in {
+    val tree = Set[Edge] (
+      Problem9.Edge("London", "Dublin", 464),
+      Problem9.Edge("Dublin", "Belfast", 141)
+    )
+
+    Problem9.edgeCausesCycle(tree, new Edge("Dublin", "London", 1)) shouldEqual true
+    Problem9.edgeCausesCycle(tree, new Edge("Belfast", "London", 1)) shouldEqual true
+    Problem9.edgeCausesCycle(tree, new Edge("Dublin", "Belfast", 1)) shouldEqual true
+    Problem9.edgeCausesCycle(tree, new Edge("Dublin", "City that isn't in the tree", 1)) shouldEqual false
+  }
+
+  behavior of "sum edges"
+
+  it should "sum edges correctly" in {
     val edges = Set[Edge] (
       Problem9.Edge("London", "Dublin", 464),
       Problem9.Edge("Dublin", "Belfast", 141)
