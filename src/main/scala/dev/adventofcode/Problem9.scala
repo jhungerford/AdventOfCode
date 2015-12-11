@@ -4,6 +4,7 @@ import java.io.File
 
 import com.google.common.io.Resources
 
+import scala.collection.mutable
 import scala.io.Source
 
 object Problem9 {
@@ -49,7 +50,21 @@ object Problem9 {
     val inputFile = new File(Resources.getResource("problem9/input").toURI)
     val edges = Source.fromFile(inputFile).getLines().map(parseEdge).toList
 
-    val mst = minimumSpanningTree(edges)
-    System.out.println(s"Shortest route: ${sumEdges(mst)}")
+    val citiesToDistance = edges.map(edge => Set(edge.city1, edge.city2) -> edge.distance).toMap
+
+    // Problem 9 is the traveling salesman problem minus one edge.
+    // There's only 7 cities - brute force the solution.
+    val cities = edges.flatMap(edge => List(edge.city1, edge.city2)).toSet
+    val pathLengths = cities.toList.permutations.map { (edges) =>
+      val pathDistances: List[Int] = edges.tail.foldLeft((edges.head, List.empty[Int])) { case ((prevCity, distances), city) =>
+        val distance = citiesToDistance(Set(prevCity, city))
+        (city, distances :+ distance)
+      }._2
+
+      pathDistances.sum
+    }.toList.sorted
+
+    System.out.println(s"Shortest path: ${pathLengths.head}")
+    System.out.println(s"Longest path: ${pathLengths.last}")
   }
 }

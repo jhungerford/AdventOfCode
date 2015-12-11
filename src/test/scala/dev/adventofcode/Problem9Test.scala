@@ -75,6 +75,24 @@ class Problem9Test extends FlatSpec with Matchers {
     Problem9.edgeCausesCycle(tree, new Edge("Dublin", "City that isn't in the tree", 1)) shouldEqual false
   }
 
+  // wrong algorithm.  I need shortest path, not mst.
+  behavior of "shortest path"
+
+  it should "Calculate the shortest path for the example" in {
+    val edges = List[Edge] (
+      Problem9.Edge("London", "Dublin", 464),
+      Problem9.Edge("London", "Belfast", 518),
+      Problem9.Edge("Dublin", "Belfast", 141)
+    )
+
+    val expectedMst = Set[Edge] (
+      Problem9.Edge("London", "Dublin", 464),
+      Problem9.Edge("Dublin", "Belfast", 141)
+    )
+
+//    Problem9.shortestPath(edges) shouldEqual expectedMst
+  }
+
   behavior of "sum edges"
 
   it should "sum edges correctly" in {
