@@ -67,4 +67,19 @@ class Problem13Test extends FlatSpec with Matchers {
   it should "Calculate the maximum happiness" in {
     Problem13.maximalHappiness(exampleDirections) shouldEqual 330
   }
+
+  behavior of "yourself"
+
+  it should "Add yourself to all directions" in {
+    Problem13.addYourselfToDirections(exampleDirections) shouldEqual exampleDirections ++ Map(
+      Direction("Alice", "yourself") -> 0,
+      Direction("Bob", "yourself") -> 0,
+      Direction("Carol", "yourself") -> 0,
+      Direction("David", "yourself") -> 0,
+      Direction("yourself", "Alice") -> 0,
+      Direction("yourself", "Bob") -> 0,
+      Direction("yourself", "Carol") -> 0,
+      Direction("yourself", "David") -> 0
+    )
+  }
 }

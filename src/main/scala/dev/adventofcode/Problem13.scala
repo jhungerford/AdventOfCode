@@ -46,10 +46,26 @@ object Problem13 {
       .max
   }
 
+  def addYourselfToDirections(directions: Map[Direction, Int]): Map[Direction, Int] = {
+    val names = extractNames(directions)
+    val yourDirections = names.flatMap{ name =>
+      List(
+        Direction(name, "yourself") -> 0,
+        Direction("yourself", name) -> 0
+      )
+    }.toMap
+
+    yourDirections ++ directions
+  }
+
   def main(args: Array[String]) {
     val inputFile = new File(Resources.getResource("problem13/input").toURI)
     val directions = parseLines(Source.fromFile(inputFile).getLines())
 
     System.out.println(s"Maximum happiness: ${maximalHappiness(directions)}")
+
+    val directionsWithYourself = addYourselfToDirections(directions)
+
+    System.out.println(s"Maximum happiness with yourself: ${maximalHappiness(directionsWithYourself)}")
   }
 }
