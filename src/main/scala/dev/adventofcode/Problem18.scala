@@ -27,19 +27,36 @@ object Problem18 {
         lights(rowNum).indices.map { colNum =>
           val neighbors: Int = neighborsOn(rowNum, colNum)
 
-          lights(rowNum)(colNum) match {
-            // A light which is on stays on when 2 or 3 neighbors are on, and turns off otherwise.
-            case true if neighbors == 2 || neighbors == 3 => true
-            case true => false
+//          if (isCorner(rowNum, colNum)) {
+//            true
+//          } else {
+            lights(rowNum)(colNum) match {
+              // A light which is on stays on when 2 or 3 neighbors are on, and turns off otherwise.
+              case true if neighbors == 2 || neighbors == 3 => true
+              case true => false
 
-            // A light which is off turns on if exactly 3 neighbors are on, and stays off otherwise.
-            case false if neighbors == 3 => true
-            case false => false
-          }
+              // A light which is off turns on if exactly 3 neighbors are on, and stays off otherwise.
+              case false if neighbors == 3 => true
+              case false => false
+            }
+//          }
         }.toList
       }.toList
 
       Board(newLights)
+    }
+
+    def isCorner(rowNum: Int, colNum: Int): Boolean = {
+      val maxRow = lights.length - 1
+      val maxCol = lights.head.length - 1
+
+      (rowNum, colNum) match {
+        case (0, 0) => true
+        case (0, `maxCol`) => true
+        case (`maxRow`, 0) => true
+        case (`maxRow`, `maxCol`) => true
+        case _ => false
+      }
     }
 
     def neighborsOn(rowNum: Int, colNum: Int): Int = {
