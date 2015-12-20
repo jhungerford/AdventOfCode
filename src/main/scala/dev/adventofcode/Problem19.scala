@@ -30,6 +30,15 @@ object Problem19 {
     }
   }
 
+  // Note: stepsToMolecule doesn't terminate if the molecule isn't possible.
+  def stepsToMolecule(toMolecule: String, replacements: Map[String, List[String]]): Int = {
+    Stream.iterate(Set("e")) { molecules =>
+      molecules.flatMap { molecule =>
+        generateReplacements(molecule, replacements)
+      }
+    }.indexWhere { molecules => molecules.contains(toMolecule) }
+  }
+
   def main(args: Array[String]) {
     val replacements = parseReplacements(List(
       "Al => ThF",
@@ -83,7 +92,8 @@ object Problem19 {
 
     System.out.println(s"${newMolecules.size} different ways to do one replacement")
 
-
+    val steps = stepsToMolecule(molecule, replacements)
+    System.out.println(s"$steps steps to make the molecule")
   }
 
 }

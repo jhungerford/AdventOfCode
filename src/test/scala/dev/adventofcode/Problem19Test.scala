@@ -13,15 +13,13 @@ class Problem19Test extends FlatSpec with Matchers {
     Problem19.indexesOf("O", "HOOH") shouldEqual List(1, 2)
   }
 
+  val calibrationReplacements = Map(
+    "H" -> List("HO", "OH"),
+    "O" -> List("HH")
+  )
+
   it should "count the number of replacements in the example correctly" in {
-    val replacements = Map(
-      "H" -> List("HO", "OH"),
-      "O" -> List("HH")
-    )
-
-    val start = "HOH"
-
-    Problem19.generateReplacements(start, replacements) shouldEqual Set(
+    Problem19.generateReplacements("HOH", calibrationReplacements) shouldEqual Set(
       "HOOH", "HOHO", "OHOH", "HHHH"
     )
   }
@@ -33,11 +31,20 @@ class Problem19Test extends FlatSpec with Matchers {
       "O => HH"
     )
 
-    val expected: Map[String, List[String]] = Map(
-      "H" -> List("HO", "OH"),
-      "O" -> List("HH")
-    )
+    Problem19.parseReplacements(lines) shouldEqual calibrationReplacements
+  }
 
-    Problem19.parseReplacements(lines) shouldEqual expected
+  val fromElectronReplacements = Map(
+    "e" -> List("H", "O"),
+    "O" -> List("HH"),
+    "H" -> List("OH", "HO")
+  )
+
+  it should "calculate the number of steps to make HOH" in {
+    Problem19.stepsToMolecule("HOH", fromElectronReplacements) shouldEqual 3
+  }
+
+  it should "calculate the number of steps to make HOHOHO" in {
+    Problem19.stepsToMolecule("HOHOHO", fromElectronReplacements) shouldEqual 6
   }
 }
