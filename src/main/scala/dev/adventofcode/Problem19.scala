@@ -35,19 +35,19 @@ object Problem19 {
       }
     }
 
-    def totalSteps(molecule: String): Option[Int] = {
+    def totalSteps(molecule: String, stepsSoFar: Int): Option[Int] = {
       val (steps, newMolecule) = replaceInOrder(molecule)
 
       if (newMolecule == "e") {
-        Some(steps)
+        Some(steps + stepsSoFar)
       } else if (newMolecule == molecule) {
         None
       } else {
-        totalSteps(newMolecule).map(additionalSteps => additionalSteps + steps)
+        totalSteps(newMolecule, steps + stepsSoFar)
       }
     }
 
-    totalSteps(finalMolecule) match {
+    totalSteps(finalMolecule, 0) match {
       case None => randomStepsToMolecule(finalMolecule, replacements)
       case Some(n) => n
     }
