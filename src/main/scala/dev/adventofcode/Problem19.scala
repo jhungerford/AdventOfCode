@@ -1,159 +1,108 @@
 package dev.adventofcode
 
+import scala.util.Random
+
 object Problem19 {
 
-  def indexesOf(find: String, in: String, list: List[Int] = List.empty): List[Int] = {
-    val from = list.lastOption.getOrElse(-1) + 1
-    in.indexOf(find, from) match {
-      case -1 => list
-      case index => indexesOf(find, in, list :+ index)
-    }
-  }
-
-  def generateReplacements(molecule: String, replacements: Map[String, List[String]]): Set[String] = {
-    val newMoleculeList = for {
-      (oldAtom, newAtoms) <- replacements
-      index <- indexesOf(oldAtom, molecule)
-      newAtom <- newAtoms
-    } yield molecule.substring(0, index) + molecule.substring(index).replaceFirst(oldAtom, newAtom)
-
-    newMoleculeList.toSet
-  }
-
   val lineRegex = """([a-zA-Z]+) => ([a-zA-Z]+)""".r
-  def parseReplacements(lines: List[String]) = {
-    lines.foldLeft(Map.empty[String, List[String]]) { (map, line) =>
+  def parseBackwardsReplacements(lines: List[String]): Map[String, String] = {
+    lines.foldLeft(Map.empty[String, String]) { (map, line) =>
       line match {
-        case lineRegex(from, to) => map + (from -> (map.getOrElse(from, List.empty[String]) :+ to))
+        case lineRegex(from, to) => map + (to -> from)
         case _ => map
       }
     }
   }
 
-  def heuristicDistance(from: String, to: String): Int = {
-//    val fromUpper = from.filter { c => c.isUpper }
-//    val toUpper = to.filter { c => c.isUpper }
+  def randomStepsToMolecule(finalMolecule: String, replacements: Map[String, String]): Int = {
+    // Solution stolen from this reddit post:
+    // https://www.reddit.com/r/adventofcode/comments/3xflz8/day_19_solutions/cy4cu5b
+    // Find _a_ solution from toMolecule to 'e'.  Sort the replacements into a random order.
+    // Replace as many sub-molecules as possible until we either reach 'e' or do nothing
 
-    // https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm - DP approach to Levenshtein distance
-    val d = Array.ofDim[Int](from.length + 1, to.length + 1)
-    (0 to from.length).foreach { i => d(i)(0) = i }
-    (0 to to.length).foreach { j => d(0)(j) = j }
+    // Shuffle so the order will be different each time this method is called
+    val replacementKeys = Random.shuffle(replacements.keySet.toList)
 
-    (1 to to.length).foreach { j =>
-      (1 to from.length).foreach { i =>
-        if (from.charAt(i-1) == to.charAt(j-1)) {
-          d(i)(j) = d(i-1)(j-1)
-
-        } else {
-          val deletion = d(i-1)(j) + 1
-          val insertion = d(i)(j-1) + 1
-          val substitution = d(i-1)(j-1) + 1
-
-          d(i)(j) = Math.min(Math.min(deletion, insertion), substitution)
-        }
-      }
-    }
-
-    d(from.length)(to.length)
-  }
-
-  // Note: stepsToMolecule doesn't terminate if the molecule isn't possible.
-  def stepsToMolecule(toMolecule: String, replacements: Map[String, List[String]]): Int = {
-    def aStar(open: Set[String], gScore: Map[String, Int], fScore: Map[String, Int]): Int = {
-      if (open.isEmpty) {
-        -1
-      } else {
-        val current = open.minBy { score => fScore(score) } // Lowest fScore
-        System.out.println(s"fScore: ${fScore(current)}\tgScore: ${gScore(current)}\topen: ${open.size}\tmolecule: $current")
-
-        if (current == toMolecule) {
-          gScore(current)
-        } else {
-          val neighbors = generateReplacements(current, replacements)
-
-          val (openResult, gScoreResult, fScoreResult) = neighbors.foldLeft((open - current, gScore, fScore)) {
-            case ((newOpen, newGScore, newFScore), neighbor) =>
-              val tentativeGScore = gScore(current) + 1
-
-              if (open.contains(neighbor) && tentativeGScore >= newGScore(neighbor)) {
-                (newOpen, newGScore, newFScore) // This path is longer, ignore it.
-              } else {
-                (
-                  newOpen + neighbor,
-                  newGScore + (neighbor -> tentativeGScore),
-                  newFScore + (neighbor -> (tentativeGScore + heuristicDistance(neighbor, toMolecule)))
-                )
-              }
+    def replaceInOrder(molecule: String): (Int, String) = {
+      replacementKeys.foldLeft((0, molecule)) {
+        case ((steps, moleculeSoFar), replacementKey) =>
+          moleculeSoFar.indexOf(replacementKey) match {
+            case -1 => (steps, moleculeSoFar)
+            case index =>
+              val replacedMolecule = moleculeSoFar.substring(0, index) + replacements(replacementKey) + moleculeSoFar.substring(index + replacementKey.length)
+              (steps + 1, replacedMolecule)
           }
-
-          aStar(openResult, gScoreResult, fScoreResult)
-        }
       }
     }
 
-    val startMolecule = "e"
+    def totalSteps(molecule: String): Option[Int] = {
+      val (steps, newMolecule) = replaceInOrder(molecule)
 
-    val open = Set(startMolecule)
-    val gScore = Map(startMolecule -> 0)
-    val fScore = Map(startMolecule -> heuristicDistance(startMolecule, toMolecule))
+      if (newMolecule == "e") {
+        Some(steps)
+      } else if (newMolecule == molecule) {
+        None
+      } else {
+        totalSteps(newMolecule).map(additionalSteps => additionalSteps + steps)
+      }
+    }
 
-    aStar(open, gScore, fScore)
+    totalSteps(finalMolecule) match {
+      case None => randomStepsToMolecule(finalMolecule, replacements)
+      case Some(n) => n
+    }
   }
 
   def main(args: Array[String]) {
-    val replacements = parseReplacements(List(
-      "L => TF",
-      "L => TRFA",
-      "B => BC",
-      "B => IB",
-      "B => IRFA",
-      "C => CC",
-      "C => PB",
-      "C => PRFA",
-      "C => SRFYFA",
-      "C => SRMA",
-      "C => ST",
-      "F => CF",
-      "F => PM",
-      "F => SL",
-      "H => CRLA",
-      "H => CRFYFYFA",
-      "H => CRFYMA",
-      "H => CRMYFA",
-      "H => HC",
-      "H => NRFYFA",
-      "H => NRMA",
-      "H => NT",
+    val replacements = parseBackwardsReplacements(List(
+      "Al => ThF",
+      "Al => ThRnFAr",
+      "B => BCa",
+      "B => TiB",
+      "B => TiRnFAr",
+      "Ca => CaCa",
+      "Ca => PB",
+      "Ca => PRnFAr",
+      "Ca => SiRnFYFAr",
+      "Ca => SiRnMgAr",
+      "Ca => SiTh",
+      "F => CaF",
+      "F => PMg",
+      "F => SiAl",
+      "H => CRnAlAr",
+      "H => CRnFYFYFAr",
+      "H => CRnFYMgAr",
+      "H => CRnMgYFAr",
+      "H => HCa",
+      "H => NRnFYFAr",
+      "H => NRnMgAr",
+      "H => NTh",
       "H => OB",
-      "H => ORFA",
-      "M => BF",
-      "M => IM",
-      "N => CRFA",
-      "N => HS",
-      "O => CRFYFA",
-      "O => CRMA",
+      "H => ORnFAr",
+      "Mg => BF",
+      "Mg => TiMg",
+      "N => CRnFAr",
+      "N => HSi",
+      "O => CRnFYFAr",
+      "O => CRnMgAr",
       "O => HP",
-      "O => NRFA",
-      "O => OI",
-      "P => CP",
-      "P => PI",
-      "P => SRFA",
-      "S => CS",
-      "T => TC",
-      "I => BP",
-      "I => II",
+      "O => NRnFAr",
+      "O => OTi",
+      "P => CaP",
+      "P => PTi",
+      "P => SiRnFAr",
+      "Si => CaSi",
+      "Th => ThCa",
+      "Ti => BP",
+      "Ti => TiTi",
       "e => HF",
-      "e => NL",
-      "e => OM"
+      "e => NAl",
+      "e => OMg"
     ))
 
-    val molecule = "CRCSRBSRFAIBPIIBFAPBCSTSRIBPBPMACSRIMACSTCSRFARSRFAIIBFACCSRSTCCSRMAFYSRFYCFASTCSTPBPIMACPRSLAPBCCSRFYSTCRFAACCSRPBSRFAMYCCCCSTCCSLACCSRPBSLABCCCCSTCPBSTPBPBCSRFYFASTCSRFABCCSRFYFASTCPBSTCSRPMARFAPIBCPRFACCCCSRCCSRFYFAFABCSTFATSTSRIRPMAFACSTCPBCSRBFACCPRCCPMASRFYFACSTRPBPMA"
+    val molecule = "CRnCaSiRnBSiRnFArTiBPTiTiBFArPBCaSiThSiRnTiBPBPMgArCaSiRnTiMgArCaSiThCaSiRnFArRnSiRnFArTiTiBFArCaCaSiRnSiThCaCaSiRnMgArFYSiRnFYCaFArSiThCaSiThPBPTiMgArCaPRnSiAlArPBCaCaSiRnFYSiThCaRnFArArCaCaSiRnPBSiRnFArMgYCaCaCaCaSiThCaCaSiAlArCaCaSiRnPBSiAlArBCaCaCaCaSiThCaPBSiThPBPBCaSiRnFYFArSiThCaSiRnFArBCaCaSiRnFYFArSiThCaPBSiThCaSiRnPMgArRnFArPTiBCaPRnFArCaCaCaCaSiRnCaCaSiRnFYFArFArBCaSiThFArThSiThSiRnTiRnPMgArFArCaSiThCaPBCaSiRnBFArCaCaPRnCaCaPMgArSiRnFYFArCaSiThRnPBPMgAr"
 
-    val newMolecules = Problem19.generateReplacements(molecule, replacements)
-
-    System.out.println(s"${newMolecules.size} different ways to do one replacement")
-
-    val steps = stepsToMolecule(molecule, replacements)
+    val steps = randomStepsToMolecule(molecule, replacements)
     System.out.println(s"$steps steps to make the molecule")
   }
 
