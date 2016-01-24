@@ -30,63 +30,124 @@ object Problem19 {
     }
   }
 
+  def heuristicDistance(from: String, to: String): Int = {
+//    val fromUpper = from.filter { c => c.isUpper }
+//    val toUpper = to.filter { c => c.isUpper }
+
+    // https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm - DP approach to Levenshtein distance
+    val d = Array.ofDim[Int](from.length + 1, to.length + 1)
+    (0 to from.length).foreach { i => d(i)(0) = i }
+    (0 to to.length).foreach { j => d(0)(j) = j }
+
+    (1 to to.length).foreach { j =>
+      (1 to from.length).foreach { i =>
+        if (from.charAt(i-1) == to.charAt(j-1)) {
+          d(i)(j) = d(i-1)(j-1)
+
+        } else {
+          val deletion = d(i-1)(j) + 1
+          val insertion = d(i)(j-1) + 1
+          val substitution = d(i-1)(j-1) + 1
+
+          d(i)(j) = Math.min(Math.min(deletion, insertion), substitution)
+        }
+      }
+    }
+
+    d(from.length)(to.length)
+  }
+
   // Note: stepsToMolecule doesn't terminate if the molecule isn't possible.
   def stepsToMolecule(toMolecule: String, replacements: Map[String, List[String]]): Int = {
-    Stream.iterate(Set("e")) { molecules =>
-      molecules.flatMap { molecule =>
-        generateReplacements(molecule, replacements)
+    def aStar(open: Set[String], gScore: Map[String, Int], fScore: Map[String, Int]): Int = {
+      if (open.isEmpty) {
+        -1
+      } else {
+        val current = open.minBy { score => fScore(score) } // Lowest fScore
+        System.out.println(s"fScore: ${fScore(current)}\tgScore: ${gScore(current)}\topen: ${open.size}\tmolecule: $current")
+
+        if (current == toMolecule) {
+          gScore(current)
+        } else {
+          val neighbors = generateReplacements(current, replacements)
+
+          val (openResult, gScoreResult, fScoreResult) = neighbors.foldLeft((open - current, gScore, fScore)) {
+            case ((newOpen, newGScore, newFScore), neighbor) =>
+              val tentativeGScore = gScore(current) + 1
+
+              if (open.contains(neighbor) && tentativeGScore >= newGScore(neighbor)) {
+                (newOpen, newGScore, newFScore) // This path is longer, ignore it.
+              } else {
+                (
+                  newOpen + neighbor,
+                  newGScore + (neighbor -> tentativeGScore),
+                  newFScore + (neighbor -> (tentativeGScore + heuristicDistance(neighbor, toMolecule)))
+                )
+              }
+          }
+
+          aStar(openResult, gScoreResult, fScoreResult)
+        }
       }
-    }.indexWhere { molecules => molecules.contains(toMolecule) }
+    }
+
+    val startMolecule = "e"
+
+    val open = Set(startMolecule)
+    val gScore = Map(startMolecule -> 0)
+    val fScore = Map(startMolecule -> heuristicDistance(startMolecule, toMolecule))
+
+    aStar(open, gScore, fScore)
   }
 
   def main(args: Array[String]) {
     val replacements = parseReplacements(List(
-      "Al => ThF",
-      "Al => ThRnFAr",
-      "B => BCa",
-      "B => TiB",
-      "B => TiRnFAr",
-      "Ca => CaCa",
-      "Ca => PB",
-      "Ca => PRnFAr",
-      "Ca => SiRnFYFAr",
-      "Ca => SiRnMgAr",
-      "Ca => SiTh",
-      "F => CaF",
-      "F => PMg",
-      "F => SiAl",
-      "H => CRnAlAr",
-      "H => CRnFYFYFAr",
-      "H => CRnFYMgAr",
-      "H => CRnMgYFAr",
-      "H => HCa",
-      "H => NRnFYFAr",
-      "H => NRnMgAr",
-      "H => NTh",
+      "L => TF",
+      "L => TRFA",
+      "B => BC",
+      "B => IB",
+      "B => IRFA",
+      "C => CC",
+      "C => PB",
+      "C => PRFA",
+      "C => SRFYFA",
+      "C => SRMA",
+      "C => ST",
+      "F => CF",
+      "F => PM",
+      "F => SL",
+      "H => CRLA",
+      "H => CRFYFYFA",
+      "H => CRFYMA",
+      "H => CRMYFA",
+      "H => HC",
+      "H => NRFYFA",
+      "H => NRMA",
+      "H => NT",
       "H => OB",
-      "H => ORnFAr",
-      "Mg => BF",
-      "Mg => TiMg",
-      "N => CRnFAr",
-      "N => HSi",
-      "O => CRnFYFAr",
-      "O => CRnMgAr",
+      "H => ORFA",
+      "M => BF",
+      "M => IM",
+      "N => CRFA",
+      "N => HS",
+      "O => CRFYFA",
+      "O => CRMA",
       "O => HP",
-      "O => NRnFAr",
-      "O => OTi",
-      "P => CaP",
-      "P => PTi",
-      "P => SiRnFAr",
-      "Si => CaSi",
-      "Th => ThCa",
-      "Ti => BP",
-      "Ti => TiTi",
+      "O => NRFA",
+      "O => OI",
+      "P => CP",
+      "P => PI",
+      "P => SRFA",
+      "S => CS",
+      "T => TC",
+      "I => BP",
+      "I => II",
       "e => HF",
-      "e => NAl",
-      "e => OMg"
+      "e => NL",
+      "e => OM"
     ))
 
-    val molecule = "CRnCaSiRnBSiRnFArTiBPTiTiBFArPBCaSiThSiRnTiBPBPMgArCaSiRnTiMgArCaSiThCaSiRnFArRnSiRnFArTiTiBFArCaCaSiRnSiThCaCaSiRnMgArFYSiRnFYCaFArSiThCaSiThPBPTiMgArCaPRnSiAlArPBCaCaSiRnFYSiThCaRnFArArCaCaSiRnPBSiRnFArMgYCaCaCaCaSiThCaCaSiAlArCaCaSiRnPBSiAlArBCaCaCaCaSiThCaPBSiThPBPBCaSiRnFYFArSiThCaSiRnFArBCaCaSiRnFYFArSiThCaPBSiThCaSiRnPMgArRnFArPTiBCaPRnFArCaCaCaCaSiRnCaCaSiRnFYFArFArBCaSiThFArThSiThSiRnTiRnPMgArFArCaSiThCaPBCaSiRnBFArCaCaPRnCaCaPMgArSiRnFYFArCaSiThRnPBPMgAr"
+    val molecule = "CRCSRBSRFAIBPIIBFAPBCSTSRIBPBPMACSRIMACSTCSRFARSRFAIIBFACCSRSTCCSRMAFYSRFYCFASTCSTPBPIMACPRSLAPBCCSRFYSTCRFAACCSRPBSRFAMYCCCCSTCCSLACCSRPBSLABCCCCSTCPBSTPBPBCSRFYFASTCSRFABCCSRFYFASTCPBSTCSRPMARFAPIBCPRFACCCCSRCCSRFYFAFABCSTFATSTSRIRPMAFACSTCPBCSRBFACCPRCCPMASRFYFACSTRPBPMA"
 
     val newMolecules = Problem19.generateReplacements(molecule, replacements)
 
