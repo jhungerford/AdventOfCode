@@ -1,17 +1,32 @@
 package dev.adventofcode
 
+import scala.collection.immutable.NumericRange
+import scala.collection.mutable.ArrayBuffer
+
 object Problem20 {
-  def numPresents(house: Int): Int = {
-    (1 to house).filter( i => house % i == 0 ).map(i => i * 10).sum
-  }
 
   def main(args: Array[String]) {
-    val minPresents = 36000000
+    val maxHouseNum = 36000000
+    val presents: ArrayBuffer[Int] = ArrayBuffer.fill(maxHouseNum/10)(0)
 
-    val firstHouse = Stream.from(1).collectFirst {
-      case house if numPresents(house) >= minPresents => house
+    (1 until maxHouseNum).foreach { house =>
+      NumericRange(house, maxHouseNum/10, house).foreach(i => presents(i) = presents(i) + house*10)
     }
 
-    System.out.println(s"First house to get >$minPresents presents: $firstHouse")
+    val firstHouse = presents.indexWhere( presents => presents >= maxHouseNum )
+    System.out.println(s"First house: $firstHouse")
+
+    val presents2: ArrayBuffer[Int] = ArrayBuffer.fill(maxHouseNum/10)(0)
+    (1 until maxHouseNum).foreach { house =>
+      (1 to 50).foreach { i =>
+        val index: Int = house * i
+        if (index < maxHouseNum/10) {
+          presents2(index) = presents2(index) + house * 11
+        }
+      }
+    }
+
+    val part2House = presents2.indexWhere( presents => presents >= maxHouseNum )
+    System.out.println(s"Part 2 house: $part2House")
   }
 }
