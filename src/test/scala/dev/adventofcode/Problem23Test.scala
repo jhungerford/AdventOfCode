@@ -19,7 +19,7 @@ class Problem23Test extends FlatSpec with Matchers {
 
     program shouldEqual List(
       IncrementInstruction("a"),
-      JumpIfOddInstruction("a", 2),
+      JumpIfOneInstruction("a", 2),
       TripleInstruction("a"),
       IncrementInstruction("a")
     )
@@ -27,30 +27,43 @@ class Problem23Test extends FlatSpec with Matchers {
 
   it should "set a to 2" in {
     val program = Problem23.parse(sampleLines.iterator)
-    val result = Problem23.execute(program)
+    val result = Problem23.execute(Machine(0, 0, 0), program)
 
     result.a shouldEqual 2
   }
 
   behavior of "instructions"
 
+  val machine = Machine(4, 9, 0)
+
   it should "half correctly" in {
-    val machine = Machine(4, 8, 0)
-    HalfInstruction("a").execute(machine) shouldEqual Machine(2, 8, 1)
+    HalfInstruction("a").execute(machine) shouldEqual Machine(2, 9, 1)
     HalfInstruction("b").execute(machine) shouldEqual Machine(4, 4, 1)
   }
 
   it should "triple correctly" in {
-    val machine = Machine(4, 8, 0)
-    TripleInstruction("a").execute(machine) shouldEqual Machine(12, 8, 1)
-    TripleInstruction("b").execute(machine) shouldEqual Machine(4, 24, 1)
+    TripleInstruction("a").execute(machine) shouldEqual Machine(12, 9, 1)
+    TripleInstruction("b").execute(machine) shouldEqual Machine(4, 27, 1)
   }
 
   it should "increment correctly" in {
-    val machine = Machine(4, 8, 0)
-    IncrementInstruction("a").execute(machine) shouldEqual Machine(5, 8, 1)
-    IncrementInstruction("b").execute(machine) shouldEqual Machine(4, 9, 1)
+    IncrementInstruction("a").execute(machine) shouldEqual Machine(5, 9, 1)
+    IncrementInstruction("b").execute(machine) shouldEqual Machine(4, 10, 1)
   }
 
+  it should "jump offset correctly" in {
+    JumpInstruction(2).execute(machine) shouldEqual Machine(4, 9, 2)
+  }
 
+  it should "jump if even correctly" in {
+    JumpIfEvenInstruction("a", -2).execute(machine) shouldEqual Machine(4, 9, -2)
+    JumpIfEvenInstruction("b", -2).execute(machine) shouldEqual Machine(4, 9, 1)
+  }
+
+  it should "jump if one correctly" in {
+    val oneMachine = Machine(1, 2, 3)
+    JumpIfOneInstruction("a", -2).execute(machine) shouldEqual Machine(4, 9, 1)
+    JumpIfOneInstruction("a", -2).execute(oneMachine) shouldEqual Machine(1, 2, 1)
+    JumpIfOneInstruction("b", -2).execute(oneMachine) shouldEqual Machine(1, 2, 4)
+  }
 }

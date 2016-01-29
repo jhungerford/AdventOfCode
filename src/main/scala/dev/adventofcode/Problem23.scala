@@ -59,12 +59,12 @@ object Problem23 {
   }
 
   // jio r, offset is like jmp, but only jumps if register r is 1 ("jump if one", not odd).
-  case class JumpIfOddInstruction(register: String, offset: Int) extends Instruction {
+  case class JumpIfOneInstruction(register: String, offset: Int) extends Instruction {
     override def execute(machine: Machine): Machine = register match {
-      case "a" if machine.a % 2 == 1 => machine.copy(programCounter = machine.programCounter + offset)
+      case "a" if machine.a == 1 => machine.copy(programCounter = machine.programCounter + offset)
       case "a" => machine.copy(programCounter = machine.programCounter + 1)
 
-      case "b" if machine.b % 2 == 1 => machine.copy(programCounter = machine.programCounter + offset)
+      case "b" if machine.b == 1 => machine.copy(programCounter = machine.programCounter + offset)
       case "b" => machine.copy(programCounter = machine.programCounter + 1)
 
       case _ => throw new IllegalStateException("Invalid register")
@@ -85,34 +85,33 @@ object Problem23 {
       case incRegex(register) => Some(IncrementInstruction(register))
       case jmpRegex(offset) => Some(JumpInstruction(offset.toInt))
       case jieRegex(register, offset) => Some(JumpIfEvenInstruction(register, offset.toInt))
-      case jioRegex(register, offset) => Some(JumpIfOddInstruction(register, offset.toInt))
+      case jioRegex(register, offset) => Some(JumpIfOneInstruction(register, offset.toInt))
 
-      case _ => None
+      case blank if blank.isEmpty => None
+      case invalid => throw new IllegalStateException(s"'$invalid' is not a valid instruction")
     }.toList
   }
 
-  def execute(program: List[Instruction]): Machine = {
-    val machine = Machine(0, 0, 0)
-
-    def executeStep(machine: Machine, program: List[Instruction]): Machine = {
-      machine.programCounter < 0 || machine.programCounter >= program.length match {
-        case true => machine
-        case false =>
-          val instruction: Instruction = program(machine.programCounter)
-          System.out.println(s"$machine - $instruction")
-          val newMachine = instruction.execute(machine)
-          executeStep(newMachine, program)
-      }
+  def execute(machine: Machine, program: List[Instruction]): Machine = {
+    machine.programCounter < 0 || machine.programCounter >= program.length match {
+      case true => machine
+      case false =>
+        val instruction: Instruction = program(machine.programCounter)
+        val newMachine = instruction.execute(machine)
+        System.out.println(s"$machine - $instruction -> $newMachine")
+        execute(newMachine, program)
     }
-
-    executeStep(machine, program)
   }
 
   def main(args: Array[String]) {
     val inputFile = new File(Resources.getResource("problem23/input").toURI)
 
     val program = Problem23.parse(Source.fromFile(inputFile).getLines())
-    val part1Result = execute(program)
+
+    val part1Result = execute(Machine(0, 0, 0), program)
     System.out.println(part1Result)
+
+    val part2Result = execute(Machine(1, 0, 0), program)
+    System.out.println(part2Result)
   }
 }
