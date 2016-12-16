@@ -94,11 +94,18 @@ object Problem22 {
   val allSpells: Set[Spell] = Set(MagicMissile, Drain, new Shield, new Poison, new Recharge)
 
   def playerTurn(player: Player, boss: Boss, manaSoFar: Int): List[Outcome] = {
-    if (manaSoFar > 1000) {
+    if (manaSoFar > 1500) {
       List.empty
     } else {
+      // Lose 1 HP (hard mode)
+      // TODO: 1242 is too high
+      val playerAfterHPLoss = player.copy(hp = player.hp - 1)
+      if (playerAfterHPLoss.hp <= 0) {
+        return List(Outcome(playerWon = false, manaSoFar))
+      }
+
       // Apply effects
-      val (playerAfterEffects, bossAfterEffects) = applyEffects(player, boss)
+      val (playerAfterEffects, bossAfterEffects) = applyEffects(playerAfterHPLoss, boss)
 
       // either the player died, the boss died, or we need to enumerate spells
       if (playerAfterEffects.hp <= 0) {
@@ -111,7 +118,7 @@ object Problem22 {
         // Cast all of the spells the player still has mana for
         val availableSpells = allSpells.filterNot { spell =>
           playerAfterEffects.effects.exists {
-            activeEffect => spell.getClass == activeEffect.getClass
+            activeEffect => spell.getClass == activeEffect.getClass && activeEffect.turns > 0
           }
         }.filter(spell => spell.cost <= playerAfterEffects.mana)
 
