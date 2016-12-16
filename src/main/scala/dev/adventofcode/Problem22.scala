@@ -16,6 +16,7 @@ object Problem22 {
   }
 
   trait Effect extends Spell {
+    def turns: Int
     def tick(player: Player, boss: Boss): (Player, Boss)
   }
 
@@ -43,7 +44,7 @@ object Problem22 {
     val cost = 113
 
     override def cast(player: Player, boss: Boss): (Player, Boss) = (
-      player.copy(mana = player.mana - cost, effects = player.effects + this),
+      player.copy(mana = player.mana - cost, effects = player.effects + this, armor = 7),
       boss)
 
     override def tick(player: Player, boss: Boss): (Player, Boss) = {
@@ -109,8 +110,10 @@ object Problem22 {
       } else {
         // Cast all of the spells the player still has mana for
         val availableSpells = allSpells.filterNot { spell =>
-          playerAfterEffects.effects.exists { activeEffect => spell.getClass == activeEffect.getClass }
-        }.filter(spell => spell.cost <= player.mana)
+          playerAfterEffects.effects.exists {
+            activeEffect => spell.getClass == activeEffect.getClass
+          }
+        }.filter(spell => spell.cost <= playerAfterEffects.mana)
 
         availableSpells.toList.flatMap { spell =>
           val (playerAfterSpell, bossAfterSpell) = spell.cast(playerAfterEffects, bossAfterEffects)
@@ -141,12 +144,12 @@ object Problem22 {
 
     } else {
       // Attack
-      val playerAfterAttack = boss.attack(playerAfterEffects)
+      val playerAfterAttack = bossAfterEffects.attack(playerAfterEffects)
 
       if (playerAfterAttack.hp <= 0) {
         List(Outcome(playerWon = false, manaSoFar))
       } else {
-        playerTurn(player, boss, manaSoFar)
+        playerTurn(playerAfterAttack, bossAfterEffects, manaSoFar)
       }
     }
   }
